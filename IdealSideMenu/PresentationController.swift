@@ -69,7 +69,7 @@ class CustomAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitioni
         if isPresenting {
             return 0.4
         }else {
-            return 0.2
+            return 0.3
         }
     }
     func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
@@ -77,8 +77,10 @@ class CustomAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitioni
         
         if isPresenting {
             animatePresentTransition(using: transitionContext)
+            print("ture")
         } else {
             animateDissmissalTransition(using: transitionContext)
+            print("false")
         }
     }
     func animatePresentTransition(using transitionContext: UIViewControllerContextTransitioning) {
@@ -86,18 +88,28 @@ class CustomAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitioni
         let containerView = transitionContext.containerView
         containerView.addSubview(toView)
         
-        UIView.animate(withDuration: transitionDuration(using: transitionContext), animations: {
-            toView.frame.origin.x -= -toView.bounds.width
+        
+        UIView.animate(withDuration: transitionDuration(using: transitionContext),delay: 0,options: .curveEaseIn,animations: {
+            toView.frame.origin.x += toView.bounds.width
         }) { completed in
-            print(toView.frame)
-            transitionContext.completeTransition(completed)
+            print(toView.frame.origin.x)
+            //画面遷移が完了していない(x=0)場合画面を削除
+            if toView.frame.origin.x == 0 {
+                transitionContext.completeTransition(completed)
+            }else {
+                if transitionContext.transitionWasCancelled {
+                    toView.removeFromSuperview()
+                }
+                transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
+            }
         }
+        
     }
     func animateDissmissalTransition(using transitionContext: UIViewControllerContextTransitioning) {
         guard let fromView = transitionContext.view(forKey: .from) else { return }
         let containerView = transitionContext.containerView
         
-        UIView.animate(withDuration: transitionDuration(using: transitionContext), animations: {
+        UIView.animate(withDuration: transitionDuration(using: transitionContext),delay: 0,options: .curveEaseOut,animations: {
             fromView.frame.origin.x = -containerView.bounds.width
         }) { _ in
             if transitionContext.transitionWasCancelled {

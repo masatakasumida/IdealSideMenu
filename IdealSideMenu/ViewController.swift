@@ -12,18 +12,16 @@ class ViewController: UIViewController {
     private var interactionController = UIPercentDrivenInteractiveTransition()
     private var interactionHasStarted = false
     
-    
-    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         let panGesture = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(panGestureRecognizerAction))
         panGesture.edges = .left
         view.addGestureRecognizer(panGesture)
+        interactionController.completionCurve = .easeIn
         
-        interactionController.completionCurve = .linear
-        interactionController.completionSpeed = 2.5
+        
     }
-    
     
     @objc func panGestureRecognizerAction(sender: UIScreenEdgePanGestureRecognizer) {
         let progress = abs(sender.translation(in: view).x / view.bounds.size.width)
@@ -40,12 +38,12 @@ class ViewController: UIViewController {
         case .ended:
             
             interactionHasStarted = false
-            
-            interactionController.finish()
-
-            case .cancelled:
+            if progress > 0.5 { interactionController.finish() }
+            else { interactionController.cancel()
+                
+            }
+        case .cancelled:
             interactionHasStarted = false
-           
             interactionController.cancel()
             
         default:
@@ -53,9 +51,10 @@ class ViewController: UIViewController {
         }
     }
     
-     func showMiracle() {
-         let sideMenuVC = storyboard?.instantiateViewController(identifier: "sideMenu")as! SideMenuViewController
+    func showMiracle() {
+        let sideMenuVC = storyboard?.instantiateViewController(identifier: "sideMenu")as! SideMenuViewController
         sideMenuVC.modalPresentationStyle = .custom
+        
         sideMenuVC.transitioningDelegate = self
         present(sideMenuVC, animated: true, completion: nil)
     }
@@ -73,12 +72,13 @@ extension ViewController: UIViewControllerTransitioningDelegate {
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         return CustomAnimatedTransitioning(isPresenting: true)
     }
-
+    
     func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         return CustomAnimatedTransitioning(isPresenting: false)
     }
+    
     func interactionControllerForPresentation(using animator: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
-        interactionHasStarted ? interactionController : nil
+        guard interactionHasStarted else { return nil }
+        return  interactionController
     }
 }
-
