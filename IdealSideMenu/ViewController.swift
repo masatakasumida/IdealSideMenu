@@ -18,13 +18,12 @@ class ViewController: UIViewController {
         let panGesture = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(panGestureRecognizerAction))
         panGesture.edges = .left
         view.addGestureRecognizer(panGesture)
-        interactionController.completionCurve = .easeIn
-        
+        interactionController.completionCurve = .linear
         
     }
     
     @objc func panGestureRecognizerAction(sender: UIScreenEdgePanGestureRecognizer) {
-        let progress = abs(sender.translation(in: view).x / view.bounds.size.width)
+        let progress = abs(sender.translation(in: view).x / view.bounds.size.width) + 0.3//開始位置の調整
         
         switch sender.state {
         case .began:
@@ -34,13 +33,18 @@ class ViewController: UIViewController {
             
         case .changed:
             interactionController.update(progress)
-            
+           // print(progress)
         case .ended:
             
             interactionHasStarted = false
-            if progress > 0.5 { interactionController.finish() }
-            else { interactionController.cancel()
-                
+            let dragVelocity = sender.velocity(in: view)
+            
+            if dragVelocity.x >= 500 {                
+                interactionController.finish()
+            }else if progress > 0.58 {
+                interactionController.finish()
+            }else {
+                interactionController.cancel()
             }
         case .cancelled:
             interactionHasStarted = false
