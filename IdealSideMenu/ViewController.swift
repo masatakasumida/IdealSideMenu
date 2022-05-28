@@ -23,7 +23,7 @@ class ViewController: UIViewController {
     }
     
     @objc func panGestureRecognizerAction(sender: UIScreenEdgePanGestureRecognizer) {
-        let progress = abs(sender.translation(in: view).x / view.bounds.size.width) + 0.3//開始位置の調整
+        let progress = UIDevice.isiPad ? abs(sender.translation(in: view).x / view.bounds.size.width) + 0.7 : abs(sender.translation(in: view).x / view.bounds.size.width) + 0.3//開始位置の調整
         
         switch sender.state {
         case .began:

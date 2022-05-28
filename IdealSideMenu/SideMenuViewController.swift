@@ -21,7 +21,7 @@ class SideMenuViewController: UIViewController {
         
         tableView.delegate = self
         tableView.dataSource = self
-                
+        
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(panGestureRecognizerAction))
         view.addGestureRecognizer(panGesture)
     }
@@ -33,6 +33,8 @@ class SideMenuViewController: UIViewController {
         }
     }
     @objc func panGestureRecognizerAction(sender: UIPanGestureRecognizer) {
+        let progress = abs(sender.translation(in: view).x / view.bounds.size.width)
+        
         let translation = sender.translation(in: view)
         
         // 右にドラッグしても反応させない
@@ -45,7 +47,9 @@ class SideMenuViewController: UIViewController {
             //ドラッグする移動量の速さに応じて画面を閉じる
             if dragVelocity.x <= -500 {
                 self.dismiss(animated: true, completion: nil)
-            } else {
+            }else if progress > 0.72 {
+                dismiss(animated: true, completion: nil)
+            }else {
                 
                 UIView.animate(withDuration: 0.3) {
                     self.view.frame.origin = self.pointOrigin ?? CGPoint(x: 0, y: 0)

@@ -12,15 +12,18 @@ class PresentationController: UIPresentationController {
     
     let blurEffectView: UIVisualEffectView!
     var tapGestureRecognizer: UITapGestureRecognizer = UITapGestureRecognizer()
+    var panGestureRecognizer: UIPanGestureRecognizer = UIPanGestureRecognizer()
     
     override init(presentedViewController: UIViewController, presenting presentingViewController: UIViewController?) {
         let blurEffect = UIBlurEffect(style: .dark)
         blurEffectView = UIVisualEffectView(effect: blurEffect)
         super.init(presentedViewController: presentedViewController, presenting: presentingViewController)
         tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(dismissController))
+        panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(dragDismissController))
         blurEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         self.blurEffectView.isUserInteractionEnabled = true
         self.blurEffectView.addGestureRecognizer(tapGestureRecognizer)
+        self.blurEffectView.addGestureRecognizer(panGestureRecognizer)
     }
     
     override var frameOfPresentedViewInContainerView: CGRect {
@@ -57,6 +60,31 @@ class PresentationController: UIPresentationController {
     @objc func dismissController(){
         self.presentedViewController.dismiss(animated: true, completion: nil)
     }
+    @objc func dragDismissController(sender: UIPanGestureRecognizer) {
+        let progress = abs(sender.translation(in: blurEffectView).x / blurEffectView.bounds.size.width)
+        
+        let translation = sender.translation(in: blurEffectView)
+        
+        guard translation.x <= 0 else { return }
+        presentedView?.frame.origin = CGPoint(x: translation.x, y: 0)
+        if sender.state == .ended {
+            let dragVelocity = sender.velocity(in: blurEffectView)
+            
+            if dragVelocity.x <= -500 {
+                
+                self.presentedViewController.dismiss(animated: true, completion: nil)
+            }else if progress > 0.55 {
+                
+                self.presentedViewController.dismiss(animated: true, completion: nil)
+                
+            }else {
+                UIView.animate(withDuration: 0.3) {
+                    self.presentedView?.frame.origin = CGPoint(x: 0, y: 0)
+                }
+            }
+            
+        }
+    }
 }
 class CustomAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitioning {
     let isPresenting: Bool
@@ -67,9 +95,9 @@ class CustomAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitioni
     
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
         if isPresenting {
-            return 0.4
+            return UIDevice.isiPad ? 0.5 : 0.4
         }else {
-            return 0.3
+            return UIDevice.isiPad ? 0.6 : 0.3
         }
     }
     func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
@@ -77,10 +105,10 @@ class CustomAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitioni
         
         if isPresenting {
             animatePresentTransition(using: transitionContext)
-            print("ture")
+            
         } else {
             animateDissmissalTransition(using: transitionContext)
-            print("false")
+            
         }
     }
     func animatePresentTransition(using transitionContext: UIViewControllerContextTransitioning) {
